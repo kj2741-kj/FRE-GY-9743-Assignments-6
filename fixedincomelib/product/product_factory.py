@@ -41,8 +41,22 @@ class ProductFactory:
         **kwargs: Any,
     ) -> ProductRFRSwap:
 
-        #TODO
-        pass
+        start, end = cls._tokenize_axis1(axis1)
+        bdc = data_convention.business_day_convention
+        holidays = data_convention.holiday_convention
+        if end is None:
+            effective_date, term = value_date, start
+        elif start.is_term():
+            effective_date = add_period(value_date, start.get_term(), bdc, holidays)
+            term = end
+        else:
+            effective_date, term = start.get_date(), end
+        return ProductRFRSwap(
+            effective_date, term, data_convention.payment_offset, data_convention.index_str,
+            values, PayOrReceive.from_string(kwargs.get("pay_or_rec", "receive")),
+            kwargs.get("notional", 1e4), data_convention.acc_period, data_convention.acc_basis,
+            None, bdc, holidays, kwargs.get("spread", 0.0), data_convention.compounding_method,
+        )
 
     @classmethod
     def create_overnight_index_basis_swap(
@@ -54,8 +68,24 @@ class ProductFactory:
         **kwargs: Any,
     ) -> ProductOvernightIndexBasisSwap:
 
-        #TODO
-        pass
+        start, end = cls._tokenize_axis1(axis1)
+        bdc = data_convention.business_day_convention
+        holidays = data_convention.holiday_convention
+        if end is None:
+            effective_date, term = value_date, start
+        elif start.is_term():
+            effective_date = add_period(value_date, start.get_term(), bdc, holidays)
+            term = end
+        else:
+            effective_date, term = start.get_date(), end
+        return ProductOvernightIndexBasisSwap(
+            effective_date, term, data_convention.payment_offset,
+            data_convention.index_1_str, data_convention.index_2_str, values,
+            PayOrReceive.from_string(kwargs.get("pay_or_rec", "receive")),
+            kwargs.get("notional", 1e4), data_convention.acc_period_1, data_convention.acc_basis,
+            data_convention.acc_period_2, bdc, holidays,
+            CompoundingMethod.from_string(data_convention.compounding_method_),
+        )
 
     @classmethod
     def create_fra(cls, value_date, axis1, data_convention, values, **kwargs):
